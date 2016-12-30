@@ -7,21 +7,21 @@
 
 typedef struct _AFD_POLL_HANDLE_INFO_
 {
-    SOCKET Handle;
-    ULONG Events;
-    NTSTATUS Status;
+  SOCKET Handle;
+  ULONG Events;
+  NTSTATUS Status;
 } AFD_POLL_HANDLE_INFO, *PAFD_POLL_HANDLE_INFO;
 
 #ifdef _MSC_VER
-#  pragma warning(push)
-#  pragma warning(disable: 4200)
+#pragma warning(push)
+#pragma warning(disable : 4200)
 #endif
 typedef struct _AFD_POLL_INFO
 {
-    LARGE_INTEGER Timeout;
-    ULONG HandleCount;
-    ULONG_PTR Exclusive;
-    AFD_POLL_HANDLE_INFO Handles[];
+  LARGE_INTEGER Timeout;
+  ULONG HandleCount;
+  ULONG Exclusive;
+  AFD_POLL_HANDLE_INFO Handles[];
 } AFD_POLL_INFO, *PAFD_POLL_INFO;
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -310,12 +310,12 @@ int poll_impl(pollfd* fds, const unsigned nfds, int timeout)
     }
 
     std::unique_ptr<char[]> mem{nullptr};
-    std::size_t mem_size{0};
+    ULONG mem_size{0};
     HANDLE event{::CreateEventA(nullptr, FALSE, FALSE, nullptr)};
   } tls;
 
   // Allocate (only if necessary) for poll info buffer
-  const auto mem_size =
+  const ULONG mem_size =
       sizeof(AFD_POLL_INFO) + real_nfds * sizeof(AFD_POLL_HANDLE_INFO);
   if (tls.mem_size < mem_size)
   {
@@ -349,11 +349,12 @@ int poll_impl(pollfd* fds, const unsigned nfds, int timeout)
                  sizeof(base_socket), &bytes, nullptr, nullptr);
 
     handle_info->Handle = !ret ? base_socket : fds[i].fd;
+    handle_info->Status = 0;
 
     // Error events are always received which is is different than what we'd got
     // with select() call
     handle_info->Events =
-        AFD_EVENT_ABORT | AFD_EVENT_CONNECT_FAIL | AFD_EVENT_DISCONNECT;
+        AFD_EVENT_ABORT | AFD_EVENT_DISCONNECT | AFD_EVENT_CONNECT_FAIL;
 
     if (fds[i].events & POLLRDNORM)
       handle_info->Events |= AFD_EVENT_RECEIVE | AFD_EVENT_ACCEPT;
