@@ -299,7 +299,7 @@ int poll_impl(pollfd* fds, const unsigned nfds, int timeout)
 
   // No real socket was given
   if (real_nfds == 0)
-    with_socket_error(WSAEINVAL);
+    return with_socket_error(WSAEINVAL);
 
   thread_local static struct WSAPOLL_TLS
   {
